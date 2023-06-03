@@ -1,20 +1,26 @@
 import data_utils as du
-from sklearn.metrics import accuracy_score
-
-from self_knn import MyKNNClassifier
+from feature_search import forward_selection, backward_elimination
 
 
 def main():
     df = du.load_data('CS170_small_Data__15.txt')
-    X_train, X_test, y_train, y_test = du.split_data(df)
+    # Split the data into features and target variable
+    X = df.drop(0, axis=1)
+    y = df[0]
 
-    classifier = MyKNNClassifier(n_neighbors=2)
-    classifier.fit(X_train, y_train)
+    print("1. Forward Selection")
+    print("2. Backward Elimination")
+    selection_method = input("Please choose a feature selection method: ")
 
-    y_pred = classifier.predict(X_test)
+    if selection_method == "1":
+        selected_features, best_accuracy = forward_selection(X, y)
+    elif selection_method == "2":
+        selected_features, best_accuracy = backward_elimination(X, y)
+    else:
+        print("Invalid selection method!")
+        return
 
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f'The accuracy of the classifier on the test set is: {accuracy * 100}%')
+    print(f"The best feature set is: {selected_features}, with accuracy: {best_accuracy * 100}%")
 
 
 if __name__ == "__main__":
