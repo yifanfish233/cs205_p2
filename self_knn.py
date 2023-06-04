@@ -1,6 +1,7 @@
 from sklearn.neighbors import KDTree
 import numpy as np
 
+
 class MyKNNClassifier:
     def __init__(self, n_neighbors=2):
         self.n_neighbors = n_neighbors
@@ -16,5 +17,10 @@ class MyKNNClassifier:
         if self.n_neighbors == 1:
             return y_pred  # if only one neighbor, return its label
         else:
-            # if multiple neighbors, return the label that appears most often
             return np.array([np.argmax(np.bincount(labels.astype('int'))) for labels in y_pred]).astype(int)
+
+    def get_score(self, X_test, y_test):
+        y_pred = self.predict(X_test)
+        correct = sum(y_pred == y_test)
+        accuracy = correct / len(y_test)
+        return accuracy
