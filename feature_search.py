@@ -1,71 +1,52 @@
 from sklearn.metrics import accuracy_score
-from sklearn.linear_model import LogisticRegression
+import data_utils as du
 from sklearn.model_selection import train_test_split
+import self_knn
 
 
-def forward_selection(data, target):
-    best_features = []
-    remaining_features = list(data.columns)
-    best_new_score = 0  # Initialize with 0
+def backward_elimination(X, y, test_size=0.2, random_state=42):
+    # Scale the features to a range [0,1] for better performance of KNN
+    X = du.normalize_data(X)
+    X_train, X_test, y_train, y_test = du.self_train_test_split(X, y, test_size=test_size, random_state=random_state)
 
-    while remaining_features:
-        new_scores = []
-        for feature in remaining_features:
-            model = LogisticRegression()
-            use_features = best_features + [feature]
-            X_train, X_test, y_train, y_test = train_test_split(data[use_features], target, test_size=0.2, random_state=42)
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
+    knn = self_knn.MyKNNClassifier(n_neighbors=2)
+
+    # Initialize with all features
+    feature_subset = list(range(X.shape[1]))
+    best_accuracy = 0
+    best_features = feature_subset
+
+    while len(feature_subset) > 0:
+        accuracies = []
+        for i in feature_subset:
+            features_to_try = list(set(feature_subset) - set([i]))
+            knn.fit(X_train[:, features_to_try], y_train)
+            y_pred = knn.predict(X_test[:, features_to_try])
             accuracy = accuracy_score(y_test, y_pred)
-            new_scores.append((accuracy, feature))
+            accuracies.append(accuracy)
 
-            # Print the accuracy for each feature
-            print(f"Using feature {feature}, accuracy is: {accuracy * 100}%")
+            # Use 1-based indexing for printing
+            print(f'Using features {[f+1 for f in features_to_try]}, the accuracy is {accuracy * 100}%')
 
-        new_scores.sort(reverse=True)  # sort by accuracy
-        current_score, best_feature = new_scores[0]
-        if current_score > best_new_score:
-            remaining_features.remove(best_feature)
-            best_features.append(best_feature)
-            best_new_score = current_score
+        # Check if we found a new best
+        max_accuracy = max(accuracies)
+        if max_accuracy > best_accuracy:
+            # Update our best accuracy and best features
+            best_accuracy = max_accuracy
+            best_features = feature_subset
+            # remove the feature that gave us our best result
+            feature_subset.remove(feature_subset[accuracies.index(max_accuracy)])
 
-            # Print the best result of this iteration
-            print(f"This iteration, best result is using feature {best_feature}, accuracy is {current_score * 100}%")
+            # Use 1-based indexing for printing
+            print(f'Current best is using features {[f+1 for f in best_features]} with accuracy {best_accuracy * 100}%')
+
         else:
+            # If accuracy didn't improve, stop the loop
             break
 
-    return best_features, best_new_score
+    # Use 1-based indexing for printing
+    print(f'Final result: The best feature set is {[f+1 for f in best_features]}, with accuracy {best_accuracy * 100}%')
+    return best_features, best_accuracy
 
-
-def backward_elimination(data, target):
-    features = list(data.columns)
-    best_score = 0
-
-    while features:
-        new_scores = []
-        for feature in features:
-            use_features = list(set(features) - set([feature]))
-            model = LogisticRegression()
-            X_train, X_test, y_train, y_test = train_test_split(data[use_features], target, test_size=0.2, random_state=42)
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            accuracy = accuracy_score(y_test, y_pred)
-            new_scores.append((accuracy, feature))
-
-            # Print the accuracy for each feature
-            print(f"Without feature {feature}, accuracy is: {accuracy * 100}%")
-
-        new_scores.sort(reverse=True)  # sort by accuracy
-        best_new_score, worst_feature = new_scores[0]
-        if best_new_score > best_score:
-            features.remove(worst_feature)
-            best_score = best_new_score
-
-            # Print the best result of this iteration
-            print(f"This iteration, best result is without feature {worst_feature}, accuracy is {best_new_score * 100}%")
-        else:
-            break
-
-    return features, best_score
 
 
