@@ -1,5 +1,5 @@
 import data_utils as du
-from feature_search import backward_elimination
+from feature_search import forward_selection,backward_elimination
 
 def main():
 
@@ -14,10 +14,9 @@ def main():
     selection_method = input("Please choose a feature selection method: ")
 
     if selection_method == "1":
-        pass
+        selected_features, best_accuracy = forward_selection(X_train, y_train)
     elif selection_method == "2":
         selected_features, best_accuracy = backward_elimination(X_train, y_train)
-        print(f"The best feature set is: {selected_features}, with accuracy: {best_accuracy * 100}%")
     else:
         print("Invalid selection method!")
 
