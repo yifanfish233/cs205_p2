@@ -16,6 +16,7 @@ def backward_elimination(X, y, n_splits=5, random_state=42):
     idx_list = list(range(X.shape[1]))
     max_accuracy = 0
     best_features = idx_list
+    feature_max_accuracy = [0]*len(idx_list)  # Keep track of max accuracy for each feature
     kf = KFold(n_splits=n_splits, random_state=random_state, shuffle=True)
 
     q = [idx_list]
@@ -38,6 +39,8 @@ def backward_elimination(X, y, n_splits=5, random_state=42):
             if avg_accuracy > cur_max_accuracy:
                 cur_max_accuracy = avg_accuracy
                 cur_best_features = feature_subset
+                for f in feature_subset:  # Update max accuracy for each feature in the current subset
+                    feature_max_accuracy[f] = max(feature_max_accuracy[f], cur_max_accuracy)
 
         # Check if we found a new best
         if cur_max_accuracy > max_accuracy:
@@ -47,13 +50,17 @@ def backward_elimination(X, y, n_splits=5, random_state=42):
         else:
             break
 
-        # Generate next level feature subsets
-        q = [deepcopy(best_features) for _ in range(len(best_features))]
-        for subset, _ in zip(q, range(len(best_features))):
-            subset.pop(_)
+        # Generate next level feature subsets with early purning.
+        q = []
+        for i in range(len(best_features)):
+            if cur_max_accuracy >= feature_max_accuracy[best_features[i]]:
+                subset = deepcopy(best_features)
+                subset.pop(i)
+                q.append(subset)
 
     print(f'Final result: The best feature set is {[f + 1 for f in best_features]}, with accuracy {round(max_accuracy * 100, 2)}%')
     return best_features, max_accuracy
+
 
 
 
