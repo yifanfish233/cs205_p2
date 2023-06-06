@@ -7,10 +7,10 @@ def load_data(filename):
     df = pd.read_csv(filename, header=None, delim_whitespace=True)
     return df
 
-def split_data(df,test_size=0.2, random_state=None):
+def split_data(df):
     # May need adjust in the feature selection part
     X = df.iloc[:, 1:].values  # take all columns except the first as features
-    y = df.iloc[:, 0].values  # take the first column as the target class
+    Y = df.iloc[:, 0].values  # take the first column as the target class
 
     # Print the number of instances, the number of classes, and the number of features
     print("***************")
@@ -19,8 +19,10 @@ def split_data(df,test_size=0.2, random_state=None):
     print(f"The dataset contains {df.shape[1] - 1} features.")
     print("***************")
 
-    X_train, X_test, y_train, y_test = self_train_test_split(X, y, test_size=test_size, random_state=random_state)
-    return X_train, X_test, y_train, y_test
+    # X_train, X_test, y_train, y_test = self_train_test_split(X, y, test_size=test_size, random_state=random_state)
+    # return X_train, X_test, y_train, y_test
+
+    return X, Y
 
 def normalize_data(X):
     scaler = MinMaxScaler()

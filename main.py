@@ -22,16 +22,17 @@ def main():
     df = du.load_data(dataset)
 
     # Split data into training and testing set
-    X_train, X_test, y_train, y_test = du.split_data(df, test_size=0.2, random_state=42)
+    # X_train, X_test, y_train, y_test = du.split_data(df, test_size=0.2, random_state=42)
+    X, Y = du.split_data(df)
 
     print("1. Forward Selection")
     print("2. Backward Elimination")
     selection_method = input("Please choose a feature selection method: ")
 
     if selection_method == "1":
-        selected_features, best_accuracy = forward_selection(X_train, y_train)
+        selected_features, best_accuracy = forward_selection(X, Y)
     elif selection_method == "2":
-        selected_features, best_accuracy = backward_elimination(X_train, y_train)
+        selected_features, best_accuracy = backward_elimination(X, Y)
     else:
         print("Invalid selection method!")
 
