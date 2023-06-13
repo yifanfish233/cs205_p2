@@ -155,14 +155,13 @@ def backward_elimination(X, y, test_size=0.3, n_splits=5, class_num=2, random_st
                 q.append(subset)
 
     # If accuracy is less than 60%, call the aggressive backward_elimination function
-    accuracy_threshold = 0.6
+    accuracy_threshold = 0.8
     if max_accuracy < accuracy_threshold:
         print("Accuracy is less than " + str(accuracy_threshold) + "%, calling aggressive backward elimination.")
         best_features_agg, max_accuracy_agg, agg_accuracies, agg_times = backward_elimination_aggressive(X_train,
                                                                                                          y_train, kf,
                                                                                                          best_features,
                                                                                                          class_num)
-
         # append aggressive accuracies and times
         accuracies.extend(agg_accuracies)
         times.extend(agg_times)
@@ -207,7 +206,7 @@ def backward_elimination_aggressive(X_train, y_train, kf, best_features, class_n
 
         for feature_subset in subsets:
             accuracy_list = []
-            for train_index, val_index in kf.split(X_train):
+            for train_index, val_index in kf:  # change this line
                 X_train_fold, X_val_fold = X_train[train_index][:, feature_subset], X_train[val_index][:,
                                                                                     feature_subset]
                 y_train_fold, y_val_fold = y_train[train_index], y_train[val_index]

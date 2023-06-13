@@ -14,9 +14,11 @@ def main():
 
     if dataset_size == "1":
         dataset = 'CS170_small_Data__15.txt'
+        # dataset = 'CS170_small_Data__33.txt'
         df = du.load_data(dataset)
     elif dataset_size == "2":
-        dataset = 'CS170_large_Data__18.txt'
+        # dataset = 'CS170_large_Data__18.txt'
+        dataset = 'CS170_large_Data__32.txt'
         df = du.load_data(dataset)
     elif dataset_size == "3":
         dataset = 'CS170_XXXlarge_Data__6.txt'
