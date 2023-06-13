@@ -1,3 +1,5 @@
+from matplotlib import pyplot as plt
+
 import data_utils as du
 from feature_search import forward_selection, backward_elimination
 from sklearn.datasets import load_digits
@@ -35,7 +37,8 @@ def main():
         forward_selection(X, Y)
     elif selection_method == "2":
         X, Y = du.data_preprocess(X, Y)
-        backward_elimination(X, Y, class_num=num_class)
+        best_features, test_accuracy, accuracies, times = backward_elimination(X, Y, class_num=num_class)
+        du.print_for_analysis(accuracies, times, "backward_elimination")
     else:
         print("Invalid selection method!")
 

@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.decomposition import PCA
-from sklearn.feature_selection import VarianceThreshold
-
+from scipy.stats import skew
+from sklearn.preprocessing import StandardScaler
+import os
+import matplotlib.pyplot as plt
 
 
 def load_data(filename, header=None, delim_whitespace=True):
@@ -62,10 +63,6 @@ def self_train_test_split(X, Y, test_size=0.2, random_state=None):
     return X_train, X_test, y_train, y_test
 
 
-from scipy.stats import skew
-from sklearn.preprocessing import StandardScaler
-
-
 def data_preprocess(X, y):
     # check if there is any missing value, if yes, use mean to fill it
     if np.isnan(X).any():
@@ -79,4 +76,27 @@ def data_preprocess(X, y):
             X[:, i] = StandardScaler().fit_transform(X[:, i].reshape(-1, 1)).reshape(-1)
 
     return X, y
+
+def print_for_analysis(accuracies, times, folder_name):
+    # Make directory if it doesn't exist
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    plt.figure(figsize=(6, 6))
+    plt.plot(accuracies, marker='o')
+    plt.title('Accuracy per Iteration')
+    plt.xlabel('Iteration')
+    plt.ylabel('Accuracy')
+    plt.grid(True)
+    plt.savefig(f"{folder_name}/accuracy_per_iteration.png") # Save the figure
+    plt.show() # Display the figure
+
+    plt.figure(figsize=(6, 6))
+    plt.plot(times, marker='o')
+    plt.title('Latency per Iteration')
+    plt.xlabel('Iteration')
+    plt.ylabel('Latency (seconds)')
+    plt.grid(True)
+    plt.savefig(f"{folder_name}/latency_per_iteration.png") # Save the figure
+    plt.show() # Display the figure
 
