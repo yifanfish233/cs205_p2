@@ -4,6 +4,35 @@ import data_utils as du
 import numpy as np
 import self_knn
 from sklearn.model_selection import KFold
+import random
+
+def k_fold_cross_validation(data, n_splits, random_state):
+    n_samples = len(data)
+    fold_size = n_samples // n_splits
+    remainder = n_samples % n_splits
+    
+    indices = list(range(n_samples))
+    random.seed(random_state)
+    random.shuffle(indices)
+    
+    splits = []
+    start = 0
+    for i in range(n_splits):
+        end = start + fold_size
+        if remainder > 0:
+            end += 1
+            remainder -= 1
+        
+        test_indices = indices[start:end]
+        train_indices = indices[:start] + indices[end:]
+        
+        split = [train_indices,test_indices]
+        splits.append(split)
+        
+        start = end
+    
+    return splits
+
 def forward_selection(X, y, n_splits=5, random_state=42):
     #modify the code to use the KNN classifier and score to analysis the feature.
     print('Beginning search.')
@@ -15,7 +44,8 @@ def forward_selection(X, y, n_splits=5, random_state=42):
     
     max_accuracy = 0
     best_features = q[0]
-    kf = KFold(n_splits=n_splits, random_state=random_state, shuffle=True)
+    kf = k_fold_cross_validation(X, n_splits, random_state)
+    # kf = KFold(n_splits=n_splits, random_state=random_state, shuffle=True)
 
     
     while len(q[0]) < X.shape[1]:
@@ -24,7 +54,10 @@ def forward_selection(X, y, n_splits=5, random_state=42):
         # print("q: " , q)
         for feature_subset in q:
             accuracies = []
-            for train_index, test_index in kf.split(X):
+            # for train_index, test_index in kf.split(X):
+            for split in kf:
+                train_index = split[0]
+                test_index = split[1]
                 X_train, X_test = X[train_index][:, feature_subset], X[test_index][:, feature_subset]
                 y_train, y_test = y[train_index], y[test_index]
 
@@ -66,7 +99,8 @@ def backward_elimination(X, y, test_size=0.3, n_splits=5, class_num=2, random_st
     max_accuracy = 0
     best_features = idx_list
     feature_max_accuracy = [0] * len(idx_list)
-    kf = KFold(n_splits=n_splits, random_state=random_state, shuffle=True)
+    # kf = KFold(n_splits=n_splits, random_state=random_state, shuffle=True)
+    kf = k_fold_cross_validation(X, n_splits, random_state)
 
     q = [idx_list]
     while len(q) > 0:
@@ -75,7 +109,10 @@ def backward_elimination(X, y, test_size=0.3, n_splits=5, class_num=2, random_st
 
         for feature_subset in q:
             accuracies = []
-            for train_index, val_index in kf.split(X_train):
+            # for train_index, val_index in kf.split(X_train):
+            for split in kf:
+                train_index = split[0]
+                val_index = split[1]
                 X_train_fold, X_val_fold = X_train[train_index][:, feature_subset], X_train[val_index][:, feature_subset]
                 y_train_fold, y_val_fold = y_train[train_index], y_train[val_index]
 
@@ -168,11 +205,6 @@ def backward_elimination_aggressive(X_train, y_train, kf, best_features, class_n
 
     print(f'Best subset found is using features {[f + 1 for f in best_subset]} with accuracy {round(max_accuracy * 100, 2)}%')
     return best_subset, max_accuracy
-
-
-
-
-
 
 
 
