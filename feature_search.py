@@ -34,10 +34,10 @@ def k_fold_cross_validation(data, n_splits, random_state):
     
     return splits
 
-def forward_selection(X, y, n_splits=5, random_state=42):
+def forward_selection(X, y, n_splits=10, random_state=42):
     #modify the code to use the KNN classifier and score to analysis the feature.
     print('Beginning search.')
-
+    start = time.time()
     # Initialize with all features
     q = []
     for i in range(X.shape[1]):
@@ -45,50 +45,62 @@ def forward_selection(X, y, n_splits=5, random_state=42):
     
     max_accuracy = 0
     best_features = q[0]
+    # print(X.shape[1],len(X[0]),X.shape[0]) # 10, 10, 1000
+    # print(len(y),y[0]) # 1000, 2.0
+    fold_size = X.shape[0] // n_splits # 1000 // 10
+    print(fold_size)
+
     kf = k_fold_cross_validation(X, n_splits, random_state)
     # kf = KFold(n_splits=n_splits, random_state=random_state, shuffle=True)
 
-    
+    print(q)
     while len(q[0]) < X.shape[1]:
-        cur_max_accuracy = 0
         cur_best_features = None
-        # print("q: " , q)
-        for feature_subset in q:
-            accuracies = []
-            # for train_index, test_index in kf.split(X):
-            for split in kf:
-                train_index = split[0]
-                test_index = split[1]
-                X_train, X_test = X[train_index][:, feature_subset], X[test_index][:, feature_subset]
-                y_train, y_test = y[train_index], y[test_index]
+        cur_max_acc = 0
 
-                knn = self_knn.MyKNNClassifier(n_neighbors=2)
-                knn.fit(X_train, y_train)
-                accuracy = knn.get_score(X_test, y_test)
-                accuracies.append(accuracy)
+        for feature_subset in q: # [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9]]
+            acc_cnt = 0
+            test_class = [0] * X.shape[0]
 
-            avg_accuracy = np.mean(accuracies)
-            if avg_accuracy > cur_max_accuracy:
-                cur_max_accuracy = avg_accuracy
+            for i in range(n_splits): # 0,1,2,3,4,5,6,7,8,9
+                for test_num in range(fold_size*i, fold_size*i + fold_size): # 0 - 99
+                    min_distance = float("inf")
+
+                    for train_num in range(X.shape[0]): # 0 - 999
+                        distance = 0
+                        if train_num >= fold_size*i + fold_size or train_num < fold_size*i: # 100-999
+
+                            for k in feature_subset: # [0]
+                                distance += (X[train_num][k] - X[test_num][k]) ** 2
+
+                            if distance < min_distance:
+                                min_distance = distance 
+                                test_class[test_num] = y[train_num]
+                                                
+            for i in range(1000):
+                if y[i] == test_class[i]:
+                    acc_cnt += 1
+            # print(acc_cnt)
+            if acc_cnt > cur_max_acc:
+                cur_max_acc = acc_cnt
                 cur_best_features = feature_subset
-
         # Check if we found a new best
-        if cur_max_accuracy > max_accuracy:
-            max_accuracy = cur_max_accuracy
+        if cur_max_acc > max_accuracy:
+            max_accuracy = cur_max_acc
             best_features = cur_best_features
-            print(f'Current best is using features {[f + 1 for f in best_features]} with accuracy {round(max_accuracy * 100, 2)}%')
+            print(f'Current best is using features {[f + 1 for f in best_features]} with accuracy {round(max_accuracy / X.shape[0] * 100, 2)}%')
         else:
-            # break
-            print(f'Current best is using features {[f + 1 for f in cur_best_features]} with accuracy {round(cur_max_accuracy * 100, 2)}%')
+            print(f'Current best is the last one using features {[f + 1 for f in cur_best_features]} with accuracy {round(cur_max_acc / X.shape[0] * 100, 2)}%')
 
         # Generate next level feature subsets
         q = []
         for i in range(X.shape[1]):
             if i not in cur_best_features:
                 q.append(cur_best_features + [i])
-
-
-    print(f'Final result: The best feature set is {[f + 1 for f in best_features]}, with accuracy {round(max_accuracy * 100, 2)}%')
+        print(q)
+    end = time.time()
+    print("time cost: ", end - start)
+    print(f'Final result: The best feature set is {[f + 1 for f in best_features]}, with accuracy {round(max_accuracy / X.shape[0]* 100, 2)}%')
     return best_features, max_accuracy
 
 
