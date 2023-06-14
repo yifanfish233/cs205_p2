@@ -44,10 +44,14 @@ def main():
         best_features, test_accuracy, accuracies, times = backward_elimination(X, Y, threshold=0.70,
                                                                                speed_priority=True)
         end_time = time.time()
-        print("Time cost backward (second(s)): ", round(end_time - start_time, 3))
-        du.print_for_analysis(accuracies, times, "backward_elimination")
+        duration = round(end_time - start_time, 3)
+        if duration >= 120:
+            print("Time cost backward (minute(s)): ", round(duration / 60, 2))
+        else:
+            print("Time cost backward (second(s)): ", duration)
+
         iterations = list(range(1, len(accuracies) + 1))
-        du.save_results_to_csv(iterations, accuracies, times)
+        du.analyze_and_save_results(iterations, accuracies, times, directory='backward_results_data_'+str(dataset_size))
     else:
         print("Invalid selection method!")
 

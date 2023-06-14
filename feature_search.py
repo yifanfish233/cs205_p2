@@ -77,6 +77,18 @@ def forward_selection(X, y, n_splits=10, random_state=80):
     print(f'Final result: The best feature set is {[f + 1 for f in best_features]}, with accuracy {round(max_accuracy / X.shape[0]* 100, 2)}%')
     return best_features, max_accuracy
 
+
+def euclidean_distance(x, y):
+    return np.sqrt(np.sum((x - y)**2))
+
+def nearest_neighbour_classify(X_train, y_train, X_test):
+    y_pred = []
+    for test_instance in X_test:
+        distances = [euclidean_distance(test_instance, train_instance) for train_instance in X_train]
+        nearest_neighbour_index = np.argmin(distances)
+        y_pred.append(y_train[nearest_neighbour_index])
+    return y_pred
+
 def backward_elimination(X, y, threshold=0.70, test_size=0.2, n_splits=5, speed_priority=False, random_state=100):
     X_train, X_test, y_train, y_test = du.self_train_test_split(X, y, test_size=test_size, random_state=random_state)
 
@@ -111,9 +123,8 @@ def backward_elimination(X, y, threshold=0.70, test_size=0.2, n_splits=5, speed_
                 X_train_fold, X_val_fold = X_train[train_index][:, feature_subset], X_train[val_index][:, feature_subset]
                 y_train_fold, y_val_fold = y_train[train_index], y_train[val_index]
 
-                knn = self_nn.MyNNClassifier()
-                knn.fit(X_train_fold, y_train_fold)
-                accuracy = knn.get_score(X_val_fold, y_val_fold)
+                y_pred = nearest_neighbour_classify(X_train_fold, y_train_fold, X_val_fold)
+                accuracy = np.mean(y_pred == y_val_fold)
 
                 accuracy_list.append(accuracy)
             else:
@@ -121,9 +132,8 @@ def backward_elimination(X, y, threshold=0.70, test_size=0.2, n_splits=5, speed_
                     X_train_fold, X_val_fold = X_train[train_index][:, feature_subset], X_train[val_index][:, feature_subset]
                     y_train_fold, y_val_fold = y_train[train_index], y_train[val_index]
 
-                    knn = self_nn.MyNNClassifier()
-                    knn.fit(X_train_fold, y_train_fold)
-                    accuracy = knn.get_score(X_val_fold, y_val_fold)
+                    y_pred = nearest_neighbour_classify(X_train_fold, y_train_fold, X_val_fold)
+                    accuracy = np.mean(y_pred == y_val_fold)
 
                     accuracy_list.append(accuracy)
 
@@ -149,13 +159,11 @@ def backward_elimination(X, y, threshold=0.70, test_size=0.2, n_splits=5, speed_
 
         print(f'Iteration results: The best feature set is {[f + 1 for f in best_features]}, with accuracy {round(cur_max_accuracy * 100, 2)}%')
 
-    knn = self_nn.MyNNClassifier()
-    knn.fit(X_train[:, best_subset], y_train)
-    test_accuracy = knn.get_score(X_test[:, best_subset], y_test)
+    y_pred_test = nearest_neighbour_classify(X_train[:, best_subset], y_train, X_test[:, best_subset])
+    test_accuracy = np.mean(y_pred_test == y_test)
 
     print(f'Final result: The best feature set is {[f + 1 for f in best_subset]}, with accuracy {round(test_accuracy * 100, 2)}% on test set')
     return best_subset, test_accuracy, accuracies, times
-
 
 
 

@@ -108,41 +108,36 @@ def data_preprocess(X, y):
     return X, y
 
 
-def print_for_analysis(accuracies, times, folder_name):
-    # Make directory if it doesn't exist
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
+def analyze_and_save_results(iterations, accuracies, times, csv_filename='results.csv', directory='results_data'):
+    # Create the directory if it doesn't exist
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
+    # Generate and save the accuracy plot
     plt.figure(figsize=(6, 6))
     plt.plot(accuracies, marker='o')
     plt.title('Accuracy per Iteration')
     plt.xlabel('Iteration')
     plt.ylabel('Accuracy')
     plt.grid(True)
-    plt.savefig(f"{folder_name}/accuracy_per_iteration.png")  # Save the figure
-    plt.show() # Display the figure
+    plt.savefig(f"{directory}/accuracy_per_iteration.png")
+    plt.show()
 
+    # Generate and save the latency plot
     plt.figure(figsize=(6, 6))
     plt.plot(times, marker='o')
     plt.title('Latency per Iteration')
     plt.xlabel('Iteration')
     plt.ylabel('Latency (seconds)')
     plt.grid(True)
-    plt.savefig(f"{folder_name}/latency_per_iteration.png")  # Save the figure
-    plt.show() # Display the figure
+    plt.savefig(f"{directory}/latency_per_iteration.png")
+    plt.show()
 
-
-def save_results_to_csv(iterations, accuracies, times, filename='results.csv', directory='backward_data_result'):
-    # Create the directory if it doesn't exist
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-    # Create a DataFrame from the results
+    # Save the results to a CSV file
     df = pd.DataFrame({
         'Iteration': iterations,
         'Accuracy': accuracies,
         'Latency': times
     })
+    df.to_csv(os.path.join(directory, csv_filename), index=False)
 
-    # Save the DataFrame to a CSV file
-    df.to_csv(os.path.join(directory, filename), index=False)
