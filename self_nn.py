@@ -1,7 +1,7 @@
 import numpy as np
-class MyKNNClassifier:
-    def __init__(self, n_neighbors=2):
-        self.n_neighbors = n_neighbors
+class MyNNClassifier:
+    def __init__(self):
+        pass
 
     def fit(self, X_train, y_train):
         self.X_train = X_train
@@ -11,14 +11,10 @@ class MyKNNClassifier:
     def predict(self, X_test):
         y_pred = []
         for test_instance in X_test:
+            # Using the Euclidean distance
             distances = np.sqrt(np.sum((self.X_train - test_instance) ** 2, axis=1))
-            nearest_indices = distances.argsort()[:self.n_neighbors]
-            nearest_labels = self.y_train[nearest_indices]
-
-            if self.n_neighbors == 1:
-                y_pred.append(nearest_labels[0])  # if only one neighbor, return its label
-            else:
-                y_pred.append(np.argmax(np.bincount(nearest_labels.astype('int'))))  # vote by majority
+            nearest_index = distances.argmin()  # find the index of the nearest neighbor
+            y_pred.append(self.y_train[nearest_index])  # use the label of the nearest neighbor as prediction
 
         return np.array(y_pred, dtype=int)
 

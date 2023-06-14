@@ -1,3 +1,5 @@
+import random
+
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -29,7 +31,7 @@ def split_data(df):
     # May need adjust in the feature selection part
     X = df.iloc[:, 1:].values  # take all columns except the first as features
     Y = df.iloc[:, 0].values  # take the first column as the target class
-    num_class = df.iloc[:, 0].nunique() # number of classes
+    num_class = df.iloc[:, 0].nunique()  # number of classes
     # Print the number of instances, the number of classes, and the number of features
     print("***************")
     print(f"The dataset has {df.shape[0]} instances.")
@@ -63,6 +65,34 @@ def self_train_test_split(X, Y, test_size=0.2, random_state=None):
     return X_train, X_test, y_train, y_test
 
 
+def k_fold_cross_validation(data, n_splits, random_state):
+    n_samples = len(data)
+    fold_size = n_samples // n_splits
+    remainder = n_samples % n_splits
+
+    indices = list(range(n_samples))
+    random.seed(random_state)
+    random.shuffle(indices)
+
+    splits = []
+    start = 0
+    for i in range(n_splits):
+        end = start + fold_size
+        if remainder > 0:
+            end += 1
+            remainder -= 1
+
+        test_indices = indices[start:end]
+        train_indices = indices[:start] + indices[end:]
+
+        split = [train_indices, test_indices]
+        splits.append(split)
+
+        start = end
+
+    return splits
+
+
 def data_preprocess(X, y):
     # check if there is any missing value, if yes, use mean to fill it
     if np.isnan(X).any():
@@ -77,6 +107,7 @@ def data_preprocess(X, y):
 
     return X, y
 
+
 def print_for_analysis(accuracies, times, folder_name):
     # Make directory if it doesn't exist
     if not os.path.exists(folder_name):
@@ -88,7 +119,7 @@ def print_for_analysis(accuracies, times, folder_name):
     plt.xlabel('Iteration')
     plt.ylabel('Accuracy')
     plt.grid(True)
-    plt.savefig(f"{folder_name}/accuracy_per_iteration.png") # Save the figure
+    plt.savefig(f"{folder_name}/accuracy_per_iteration.png")  # Save the figure
     plt.show() # Display the figure
 
     plt.figure(figsize=(6, 6))
@@ -97,6 +128,21 @@ def print_for_analysis(accuracies, times, folder_name):
     plt.xlabel('Iteration')
     plt.ylabel('Latency (seconds)')
     plt.grid(True)
-    plt.savefig(f"{folder_name}/latency_per_iteration.png") # Save the figure
+    plt.savefig(f"{folder_name}/latency_per_iteration.png")  # Save the figure
     plt.show() # Display the figure
 
+
+def save_results_to_csv(iterations, accuracies, times, filename='results.csv', directory='backward_data_result'):
+    # Create the directory if it doesn't exist
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # Create a DataFrame from the results
+    df = pd.DataFrame({
+        'Iteration': iterations,
+        'Accuracy': accuracies,
+        'Latency': times
+    })
+
+    # Save the DataFrame to a CSV file
+    df.to_csv(os.path.join(directory, filename), index=False)
