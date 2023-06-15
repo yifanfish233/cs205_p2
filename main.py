@@ -11,12 +11,12 @@ def main():
     dataset_size = input("Please choose a dataset size: ")
 
     if dataset_size == "1":
-        # dataset = 'CS170_small_Data__15.txt'
-        dataset = 'CS170_small_Data__33.txt'
+        dataset = 'CS170_small_Data__15.txt'
+        # dataset = 'CS170_small_Data__33.txt'
         df = du.load_data(dataset)
     elif dataset_size == "2":
-        # dataset = 'CS170_large_Data__18.txt'
-        dataset = 'CS170_large_Data__32.txt'
+        dataset = 'CS170_large_Data__18.txt'
+        # dataset = 'CS170_large_Data__32.txt'
         df = du.load_data(dataset)
     elif dataset_size == "3":
         dataset = 'CS170_XXXlarge_Data__6.txt'
@@ -35,6 +35,8 @@ def main():
 
     if selection_method == "1":
         start_time = time.time()
+        if dataset_size != "1":
+            X,Y = du.sample_data(X, Y)
         forward_selection(X, Y)
         end_time = time.time()
         print("Time cost forward (second(s)): ", round(end_time - start_time, 3))

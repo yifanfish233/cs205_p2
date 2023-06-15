@@ -40,6 +40,16 @@ def split_data(df):
     print("***************")
     return X, Y, num_class
 
+def sample_data(X, Y):
+    sample_size = int(X.shape[0] / 4)  # sample size
+    random_seed = 80  # random seed
+
+    np.random.seed(random_seed)
+    sample_indices = np.random.choice(X.shape[0], size=sample_size, replace=False)
+    sample_x = X[sample_indices]
+    sample_y = Y[sample_indices]
+    return sample_x, sample_y
+
 def normalize_data(X):
     scaler = MinMaxScaler()
     X_normalized = scaler.fit_transform(X)
