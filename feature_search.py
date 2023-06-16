@@ -3,10 +3,7 @@ from copy import deepcopy
 
 import data_utils as du
 import numpy as np
-import self_nn
-from sklearn.model_selection import KFold
 import random
-
 
 def forward_selection(X, y, n_splits=5, random_state=42):
     #modify the code to use the KNN classifier and score to analysis the feature.
@@ -91,7 +88,7 @@ def forward_selection(X, y, n_splits=5, random_state=42):
 
 
 def euclidean_distance(x, y):
-    return np.sqrt(np.sum((x - y)**2))
+    return np.sqrt(np.sum((x - y) ** 2))
 
 def nearest_neighbour_classify(X_train, y_train, X_test):
     y_pred = []
@@ -101,8 +98,11 @@ def nearest_neighbour_classify(X_train, y_train, X_test):
         y_pred.append(y_train[nearest_neighbour_index])
     return y_pred
 
-def backward_elimination(X, y, threshold=0.70, test_size=0.2, n_splits=5, speed_priority=False, random_state=100):
-    X_train, X_test, y_train, y_test = du.self_train_test_split(X, y, test_size=test_size, random_state=random_state)
+
+def backward_elimination(X, y, threshold=0.70, test_size=0.2, n_splits=5, speed_priority=False, random_state=100,
+                         sample_size=1):
+    X_train, X_test, y_train, y_test = du.self_train_test_split(X, y, test_size=test_size, random_state=random_state,
+                                                                sample_size=sample_size)
 
     idx_list = list(range(X_train.shape[1]))
     max_accuracy = 0
@@ -132,7 +132,8 @@ def backward_elimination(X, y, threshold=0.70, test_size=0.2, n_splits=5, speed_
                 random_split = random.choice(kf)  # randomly select one split from kf
                 train_index = random_split[0]
                 val_index = random_split[1]
-                X_train_fold, X_val_fold = X_train[train_index][:, feature_subset], X_train[val_index][:, feature_subset]
+                X_train_fold, X_val_fold = X_train[train_index][:, feature_subset], X_train[val_index][:,
+                                                                                    feature_subset]
                 y_train_fold, y_val_fold = y_train[train_index], y_train[val_index]
 
                 y_pred = nearest_neighbour_classify(X_train_fold, y_train_fold, X_val_fold)
@@ -141,7 +142,8 @@ def backward_elimination(X, y, threshold=0.70, test_size=0.2, n_splits=5, speed_
                 accuracy_list.append(accuracy)
             else:
                 for train_index, val_index in kf:
-                    X_train_fold, X_val_fold = X_train[train_index][:, feature_subset], X_train[val_index][:, feature_subset]
+                    X_train_fold, X_val_fold = X_train[train_index][:, feature_subset], X_train[val_index][:,
+                                                                                        feature_subset]
                     y_train_fold, y_val_fold = y_train[train_index], y_train[val_index]
 
                     y_pred = nearest_neighbour_classify(X_train_fold, y_train_fold, X_val_fold)
@@ -165,16 +167,19 @@ def backward_elimination(X, y, threshold=0.70, test_size=0.2, n_splits=5, speed_
             max_accuracy = cur_max_accuracy
             best_subset = cur_best_features
         elif cur_max_accuracy < max_accuracy and cur_max_accuracy >= threshold:
-            print(f"Even if accuracy didn't increase, but still more than {threshold * 100.0}%, continue the search with backward elimination")
+            print(
+                f"Even if accuracy didn't increase, but still more than {threshold * 100.0}%, continue the search with backward elimination")
 
         best_features = cur_best_features
 
-        print(f'Iteration results: The best feature set is {[f + 1 for f in best_features]}, with accuracy {round(cur_max_accuracy * 100, 2)}%')
+        print(
+            f'Iteration results: The best feature set is {[f + 1 for f in best_features]}, with accuracy {round(cur_max_accuracy * 100, 2)}%')
 
     y_pred_test = nearest_neighbour_classify(X_train[:, best_subset], y_train, X_test[:, best_subset])
     test_accuracy = np.mean(y_pred_test == y_test)
 
-    print(f'Final result: The best feature set is {[f + 1 for f in best_subset]}, with accuracy {round(test_accuracy * 100, 2)}% on test set')
+    print(
+        f'Final result: The best feature set is {[f + 1 for f in best_subset]}, with accuracy {round(test_accuracy * 100, 2)}% on test set')
     return best_subset, test_accuracy, accuracies, times
 
 

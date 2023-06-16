@@ -1,8 +1,6 @@
 import random
-
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import skew
 from sklearn.preprocessing import StandardScaler
 import os
@@ -52,17 +50,18 @@ def sample_data(X, Y):
     sample_y = Y[sample_indices]
     return sample_x, sample_y
 
-def normalize_data(X):
-    scaler = MinMaxScaler()
-    X_normalized = scaler.fit_transform(X)
-    return X_normalized
 
-def self_train_test_split(X, Y, test_size=0.2, random_state=None):
+def self_train_test_split(X, Y, test_size=0.2, random_state=None, sample_size=None):
     if random_state:
         np.random.seed(random_state)
 
     # Create an array of indices and shuffle them
     indices = np.random.permutation(X.shape[0])
+
+    # If sample_size is specified and is less than 1, subsample the data
+    if sample_size is not None and sample_size < 1:
+        sample_size = int(X.shape[0] * sample_size)
+        indices = indices[:sample_size]
 
     # Calculate the number of training examples
     train_size = int(X.shape[0] * (1 - test_size))
@@ -115,6 +114,7 @@ def data_preprocess(X, y):
     for i in range(X.shape[1]):
         if abs(skew(X[:, i])) > 1:
             print(f"Feature {i + 1} is skewed, performing standard scaling")
+            # Standardize the data I forgot to cite this in the report.
             X[:, i] = StandardScaler().fit_transform(X[:, i].reshape(-1, 1)).reshape(-1)
 
     return X, y
