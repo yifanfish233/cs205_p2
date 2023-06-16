@@ -11,23 +11,23 @@ import random
 def forward_selection(X, y, n_splits=5, random_state=42):
     #modify the code to use the KNN classifier and score to analysis the feature.
     print('Beginning search.')
-    start = time.time()
     # Initialize with all features
     q = []
     for i in range(X.shape[1]):
         q.append([i])
-    
+    accuracies = []
     max_accuracy = 0
     best_features = q[0]
     worse_acc_cnt = 0
     diff_cnt = 0
     fold_size = X.shape[0] // n_splits # 1000 // 10
-
+    times = []
     # print(q)
     while len(q[0]) < X.shape[1]:
         cur_best_features = None
         cur_max_acc = 0
-
+        start = time.time()
+        
         for feature_subset in q: # [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9]]
             acc_cnt = 0
             test_class = [0] * X.shape[0]
@@ -67,6 +67,7 @@ def forward_selection(X, y, n_splits=5, random_state=42):
                 cur_max_acc = acc_cnt
                 cur_best_features = feature_subset
         # Check if we found a new best
+        accuracies.append(cur_max_acc / X.shape[0] * 100)
         if cur_max_acc > max_accuracy:
             worse_acc_cnt = 0
             max_accuracy = cur_max_acc
@@ -75,6 +76,8 @@ def forward_selection(X, y, n_splits=5, random_state=42):
         else:
             worse_acc_cnt += 1
             print(f'Current best is the last one using features {[f + 1 for f in cur_best_features]} with accuracy {round(cur_max_acc / X.shape[0] * 100, 2)}%')
+        end = time.time()
+        times.append(round(end - start, 3))
         if worse_acc_cnt >= 3:
             break
         # Generate next level feature subsets
@@ -82,11 +85,8 @@ def forward_selection(X, y, n_splits=5, random_state=42):
         for i in range(X.shape[1]):
             if i not in cur_best_features:
                 q.append(cur_best_features + [i])
-        # print(q)
-    end = time.time()
-    print("time cost: ", end - start)
     print(f'Final result: The best feature set is {[f + 1 for f in best_features]}, with accuracy {round(max_accuracy / X.shape[0]* 100, 2)}%')
-    return best_features, max_accuracy
+    return best_features, accuracies, times
 
 
 def euclidean_distance(x, y):

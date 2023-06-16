@@ -37,9 +37,11 @@ def main():
         start_time = time.time()
         if dataset_size != "1":
             X,Y = du.sample_data(X, Y)
-        forward_selection(X, Y)
+        best_features, accuracies, times = forward_selection(X, Y)
         end_time = time.time()
         print("Time cost forward (second(s)): ", round(end_time - start_time, 3))
+        iterations = list(range(1, len(accuracies) + 1))
+        du.analyze_and_save_results(iterations, accuracies, times, directory='forward_results_data_'+str(dataset_size))
     elif selection_method == "2":
         X, Y = du.data_preprocess(X, Y)
         start_time = time.time()
