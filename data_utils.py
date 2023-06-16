@@ -45,7 +45,9 @@ def sample_data(X, Y):
     random_seed = 80  # random seed
 
     np.random.seed(random_seed)
+    # Create an array of indices and shuffle them
     sample_indices = np.random.choice(X.shape[0], size=sample_size, replace=False)
+    # Get the part of sampled data
     sample_x = X[sample_indices]
     sample_y = Y[sample_indices]
     return sample_x, sample_y

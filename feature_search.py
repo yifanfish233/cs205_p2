@@ -27,15 +27,17 @@ def forward_selection(X, y, n_splits=5, random_state=42):
         cur_best_features = None
         cur_max_acc = 0
         start = time.time()
+        diff_cnt = 0
+        flag = 0
         
         for feature_subset in q: # [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9]]
             acc_cnt = 0
             test_class = [0] * X.shape[0]
             cur_diff_cnt = 0
-            diff_cnt = 0
 
             for i in range(n_splits): # 0,1,2,3,4,5,6,7,8,9
                 if cur_diff_cnt > diff_cnt and diff_cnt > 0:
+                    # print(f'Current is using features {[f + 1 for f in feature_subset]} with accuracy less than previous one')
                     break
                 for test_num in range(fold_size*i, fold_size*i + fold_size): # 0 - 99
                     min_distance = float("inf")
@@ -55,17 +57,16 @@ def forward_selection(X, y, n_splits=5, random_state=42):
 
                     if y[test_num] != test_class[test_num]:
                         cur_diff_cnt += 1
-
+            diff_cnt = 0
             for i in range(X.shape[0]):
                 if y[i] == test_class[i]:
                     acc_cnt += 1
                 else:
                     diff_cnt += 1
-
-            # print(acc_cnt)
             if acc_cnt > cur_max_acc:
                 cur_max_acc = acc_cnt
                 cur_best_features = feature_subset
+            print(f'Current is using features {[f + 1 for f in feature_subset]} with accuracy {round(acc_cnt / X.shape[0] * 100, 2)}%')
         # Check if we found a new best
         accuracies.append(cur_max_acc / X.shape[0] * 100)
         if cur_max_acc > max_accuracy:
@@ -78,8 +79,8 @@ def forward_selection(X, y, n_splits=5, random_state=42):
             print(f'Current best is the last one using features {[f + 1 for f in cur_best_features]} with accuracy {round(cur_max_acc / X.shape[0] * 100, 2)}%')
         end = time.time()
         times.append(round(end - start, 3))
-        if worse_acc_cnt >= 3:
-            break
+        # if worse_acc_cnt >= 5:
+        #     break
         # Generate next level feature subsets
         q = []
         for i in range(X.shape[1]):
